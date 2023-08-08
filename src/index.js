@@ -1,33 +1,103 @@
-// Holds the scale state. doesn't have to be in a global var,
-// just for the clarity of the explanation
-let allowScale = true;
+const attachPinchZoomEvents = (element, setScale) => {
+  const { onMove, onEnd, onStart } = (() => {
+    let baseScale = 1;
+    let currentScale = 1;
+    let baseScrollLeft = 0;
+    let baseScrollTop = 0;
+    let scrollLeftOffsetUnit = 0;
+    let scrollTopOffsetUnit = 0;
 
-// Just to show the state
-// You do not need this function
-function showViewportState() {
-  const viewportState = document.getElementById("viewport-state");
-  viewportState.innerHTML = allowScale ? "Can Scale" : "Can not Scale";
-}
-showViewportState();
+    const onMove = (scale) => {
+      currentScale = Math.max(baseScale * scale, 1.0);
+      setScale(currentScale);
 
-const btn = document.getElementById("toggle");
-btn.addEventListener("click", toggleViewport);
+      element.scrollLeft =
+        baseScrollLeft + (currentScale - baseScale) * scrollLeftOffsetUnit;
+      element.scrollTop =
+        baseScrollTop + (currentScale - baseScale) * scrollTopOffsetUnit;
+    };
 
-// The toggle view port updates the
-function toggleViewport() {
-  let viewport = document.querySelector("meta[name=viewport]");
-  if (!viewport) {
-    // in case there is no view port meta tag creates one and add it to the head
-    viewport = document.createElement("meta");
-    viewport.name = "viewport";
-    document.getElementsByTagName("head")[0].appendChild(viewport);
-  }
+    const onEnd = () => {
+      baseScale = currentScale;
+    };
 
-  const content = allowScale
-    ? "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    : "width=device-width, initial-scale=1.0, user-scalable=yes";
-  // this is where the magic happens by changing the vewport meta tag
-  viewport.setAttribute("content", content);
-  allowScale = !allowScale;
-  showViewportState();
-}
+    const onStart = (anchorX, anchorY) => {
+      baseScrollLeft = element.scrollLeft;
+      baseScrollTop = element.scrollTop;
+
+      scrollLeftOffsetUnit =
+        ((anchorX / 100) * element.scrollWidth) / baseScale;
+      scrollTopOffsetUnit =
+        ((anchorY / 100) * element.scrollHeight) / baseScale;
+    };
+
+    return { onMove, onEnd, onStart };
+  })(setScale);
+
+  let start = {};
+
+  const distance = (event) => {
+    return Math.hypot(
+      event.touches[0].pageX - event.touches[1].pageX,
+      event.touches[0].pageY - event.touches[1].pageY,
+    );
+  };
+
+  const calcPercentage = (clientX, clientY) => {
+    const width = element.scrollWidth;
+    const height = element.scrollHeight;
+
+    const clickX =
+      clientX - element.getBoundingClientRect().left + element.scrollLeft;
+    const clickY =
+      clientY - element.getBoundingClientRect().top + element.scrollTop;
+
+    const percentageX = (clickX / width) * 100;
+    const percentageY = (clickY / height) * 100;
+
+    return { x: percentageX, y: percentageY };
+  };
+
+  const touchStart = (event) => {
+    if (event.touches.length === 2) {
+      const { x, y } = calcPercentage(
+        (event.touches[0].clientX + event.touches[1].clientX) / 2,
+        (event.touches[0].clientY + event.touches[1].clientY) / 2,
+      );
+      onStart(x, y);
+
+      event.preventDefault();
+
+      start.distance = distance(event);
+    }
+  };
+
+  const touchMove = (event) => {
+    if (event.touches.length === 2) {
+      event.preventDefault();
+
+      const deltaDistance = distance(event);
+      const scale = deltaDistance / start.distance;
+      const truncateScale = scale;
+
+      onMove(truncateScale);
+    }
+  };
+
+  element.addEventListener("touchstart", touchStart);
+  element.addEventListener("touchmove", touchMove);
+  element.addEventListener("touchend", onEnd);
+
+  return () => {
+    element.removeEventListener("touchstart", touchStart);
+    element.removeEventListener("touchmove", touchMove);
+    element.removeEventListener("touchend", onEnd);
+  };
+};
+
+const main = document.getElementById("main")
+const wrapper = document.getElementById("wrapper")
+
+attachPinchZoomEvents(main,(scale)=>{
+  wrapper.style.transform=`scale(${scale})`
+})
