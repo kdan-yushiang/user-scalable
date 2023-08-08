@@ -3,12 +3,16 @@
   <head>
     <title>Sandbox</title>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="src/styles.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
   </head>
 
   <style>
 
     body{
+      margin: 0px;
       width: 100vw;
       height: 100vh;
     }
@@ -51,6 +55,15 @@
       </div>
     </div>
 
-    <script src="src/index.js"></script>
+    <script src="./index.js"></script>
+    <script>
+      function preventDefault(e) {
+        e.preventDefault();
+      }
+      document.addEventListener("gesturestart", preventDefault);
+      document.addEventListener("gesturechange", preventDefault);
+      document.addEventListener("gestureend", preventDefault);
+    </script>
+
   </body>
 </html>

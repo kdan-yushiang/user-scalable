@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Sandbox</title>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+  </head>
+
+  <style>
+
+    body{
+      margin: 0px;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    iframe{
+      width: 50%;
+      height: 50%;
+    }
+
+  </style>
+
+  <body>
+    <div id="main">
+      <iframe src="./index.html"></iframe>
+    </div>
+
+    <script>
+        function preventDefault(e) {
+            e.preventDefault();
+        }
+        document.addEventListener("gesturestart", preventDefault);
+        document.addEventListener("gesturechange", preventDefault);
+        document.addEventListener("gestureend", preventDefault);
+    </script>
+  </body>
+</html>
